@@ -143,6 +143,9 @@ Strophe.addConnectionPlugin('streamManagement', {
 		// Storing original xmlOutput function to use additional logic
 		this._originalXMLOutput = this._c.xmlOutput;
 		this._c.xmlOutput = this.xmlOutput.bind(this);
+
+		// Bind to the plugin context
+		this._outgoingStanzaHandler = this._outgoingStanzaHandler.bind(this);
 	},
 
 	statusChanged: function (status) {
@@ -177,7 +180,7 @@ Strophe.addConnectionPlugin('streamManagement', {
 			This prevents recursive calls to send, avoiding maximum call stack issue
 			It only occurs when using WebSockets, as the BOSH plugin internally calls setTimeout when sending
 		*/
-		setTimeout(this._outgoingStanzaHandler.bind(this), 0, elem);
+		setTimeout(this._outgoingStanzaHandler, 0, elem);
 		return this._originalXMLOutput.call(this._c, elem);
 	},
 
