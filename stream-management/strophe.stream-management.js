@@ -179,16 +179,28 @@ Strophe.addConnectionPlugin('streamManagement', {
 	* @public
 	*/
 	xmlOutput: function(elem) {
-		var child;
-		for (var i = 0; i < elem.children.length; i++) {
-			child = elem.children[i];
-			if (Strophe.isTagEqual(child, 'iq') ||
-			Strophe.isTagEqual(child, 'presence') ||
-			Strophe.isTagEqual(child, 'message')) {
-				this._increaseSentStanzasCounter(child);
-			}
-		}
+		setTimeout(() => {
+				// Extract stanzas from BOSH elements
+				var stanzas;
+				if (elem.getAttribute('xmlns') == Strophe.NS.HTTPBIND) {
+					stanzas = elem.children;
+				} else {
+					stanzas = [elem];
+				}
+				var stanza;
+				for (var i = 0; i < stanzas.length; i++) {
+					stanza = stanzas[i];
+					Strophe.isTagEqual(stanza, 'iq')
+					Strophe.isTagEqual(stanza, 'presence')
+					Strophe.isTagEqual(stanza, 'message')
 
+					if (Strophe.isTagEqual(stanza, 'iq') ||
+					Strophe.isTagEqual(stanza, 'presence') ||
+					Strophe.isTagEqual(stanza, 'message')) {
+						this._increaseSentStanzasCounter(stanza);
+					}
+				}
+		}, 0);
 		return this._originalXMLOutput.call(this._c, elem);
 	},
 
