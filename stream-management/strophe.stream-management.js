@@ -173,6 +173,16 @@ Strophe.addConnectionPlugin('streamManagement', {
 
 	xmlOutput: function(elem) {
 		/*
+			Use setTimeout to add call to bottom of stack
+			This prevents recursive calls to send, avoiding maximum call stack issue
+			It only occurs when using WebSockets, as the BOSH plugin internally calls setTimeout when sending
+		*/
+		setTimeout(this._outgoingStanzaHandler.bind(this), 0, elem);
+		return this._originalXMLOutput.call(this._c, elem);
+	},
+
+	_outgoingStanzaHandler: function(elem) {
+		/*
 			Unable to use Strophe.Bosh.prototype.strip as it is a global settings
 			Therefore manually extract any stanza from BOSH elements
 		*/
@@ -182,22 +192,14 @@ Strophe.addConnectionPlugin('streamManagement', {
 		} else {
 			stanzas = [elem];
 		}
+		var stanza;
 		for (var i = 0; i < stanzas.length; i++) {
-			/*
-				Use setTimeout to add call to bottom of stack
-				This prevents recursive calls to send, avoiding maximum call stack issue
-				It only occurs when using WebSockets, as the BOSH plugin internally calls setTimeout when sending
-			*/
-			setTimeout(this._outgoingStanzaHandler.bind(this), 0, stanzas[0]);
-		}
-		return this._originalXMLOutput.call(this._c, elem);
-	},
-
-	_outgoingStanzaHandler: function(elem) {
-		if (Strophe.isTagEqual(elem, 'iq') ||
-		Strophe.isTagEqual(elem, 'presence') ||
-		Strophe.isTagEqual(elem, 'message')) {
-			this._increaseSentStanzasCounter(elem);
+			stanza = stanzas[i];
+			if (Strophe.isTagEqual(stanza, 'iq') ||
+			Strophe.isTagEqual(stanza, 'presence') ||
+			Strophe.isTagEqual(stanza, 'message')) {
+				this._increaseSentStanzasCounter(stanza);
+			}
 		}
 	},
 
