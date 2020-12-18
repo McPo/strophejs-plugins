@@ -186,11 +186,14 @@ Strophe.addConnectionPlugin('streamManagement', {
 
 	_outgoingStanzaHandler: function(elem) {
 		/*
-			Unable to use Strophe.Bosh.prototype.strip as it is a global settings
-			Therefore manually extract any stanza from BOSH elements
+			Unable to use Strophe.Bosh.prototype.strip as it is a global setting
+			Unable to use getAttribute, as WS doesnt always pass a pure XML Object into this function
+			For Opening, Closing and the initial Presence in WS `getAttribute` does not exist
+			Instead chaining `.attributes` appear to give the best solution.
+			Alternatively we could check if BOSH is being used and if the element starts with a body tag
 		*/
 		var stanzas;
-		if (elem.getAttribute('xmlns') == Strophe.NS.HTTPBIND) {
+		if (elem.attributes && elem.attributes.xmlns && elem.attributes.xmlns.value == Strophe.NS.HTTPBIND) {
 			stanzas = elem.children;
 		} else {
 			stanzas = [elem];
